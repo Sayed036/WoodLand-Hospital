@@ -66,7 +66,7 @@ function AddDoctor() {
         toast.error(data.message);
       }
 
-      console.log(data);
+      // console.log(data);
     } catch (error) {
       toast.error(error.message);
       console.log(error);

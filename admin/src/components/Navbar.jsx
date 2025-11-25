@@ -20,7 +20,7 @@ function Navbar() {
         <img className='w-36 sm:w-40 cursor-pointer' src={assets.admin_logo} alt="" />
         <p className='border px-5 py-0.5 mt-2 rounded-full border-gray-500 text-gray-600'>{aToken ? 'Admin Panel' : 'Doctor Panel' } </p>
       </div>
-      <button onClick={logout} className='bg-[#b03053] text-white text-sm px-10 py-2 rounded-full'>Logout</button>
+      <button onClick={logout} className='bg-[#b03053] text-white text-sm px-10 py-2 rounded-full cursor-pointer'>Logout</button>
     </div>
   )
 }
