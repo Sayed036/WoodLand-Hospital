@@ -1,9 +1,8 @@
 import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const MyAppointments = () => {
@@ -13,13 +12,12 @@ const MyAppointments = () => {
 
   const getUserAppointments = async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/appointments", {
+      const { data } = await axios.get(`${backendUrl}/api/user/appointments`, {
         headers: { token },
       });
 
       if (data.success) {
         setAppointments(data.appointments.reverse());
-        // console.log("bhai appointment list mil gya :",data.appointments)
       } else {
         console.error("Failed to fetch appointments:", data.message);
       }
@@ -29,26 +27,24 @@ const MyAppointments = () => {
     }
   };
 
-  // cancel appointment function can be added here
+  // Cancel appointment
   const cancelAppointment = async (appointmentId) => {
     try {
-      // console.log(appointmentId)
       const { data } = await axios.post(
-        backendUrl + "/api/user/cancel-appointment",
+        `${backendUrl}/api/user/cancel-appointment`,
         { appointmentId },
         { headers: { token } }
       );
+
       if (data.success) {
         toast.success(data.message);
-        console.log(data.message);
-        // refresh appointments list
         getUserAppointments();
-        getDoctorsData(); // jb appointment cancel hoga to doctor ke slots bhi update hone chahiye, isliye ye function call kar rahe hain
+        getDoctorsData();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error("cancel appointments(catch-error) me dikkat h re babah :", error);
+      console.error("Cancel appointment error:", error);
       toast.error(error.message);
     }
   };
@@ -59,14 +55,13 @@ const MyAppointments = () => {
       amount: order.amount,
       currency: "INR",
       name: "RoseWood Hospital Payment",
-      description: "Appointement Payment",
+      description: "Appointment Payment",
       order_id: order.id,
       receipt: order.receipt,
       handler: async (response) => {
-        console.log(response);
         try {
           const { data } = await axios.post(
-            backendUrl + "/api/user/verifyRazorpay",
+            `${backendUrl}/api/user/verifyRazorpay`,
             response,
             { headers: { token } }
           );
@@ -77,7 +72,6 @@ const MyAppointments = () => {
             toast.success(data.message);
           }
         } catch (error) {
-          console.log(error);
           toast.error("Payment verification failed");
         }
       },
@@ -87,90 +81,147 @@ const MyAppointments = () => {
     rzp.open();
   };
 
-  // controller fucntion for razorpay
+  // Razorpay start
   const appointmentRazorpay = async (appointmentId) => {
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/user/payment-razorpay",
+        `${backendUrl}/api/user/payment-razorpay`,
         { appointmentId },
         { headers: { token } }
       );
 
       if (data.success) {
-        // console.log(data.order)
         initPay(data.order);
       }
     } catch (error) {
-      console.log("Init pay me error aaya hai : ", error);
+      console.log("Init pay error:", error);
     }
   };
 
+  // pdf download
+  const downloadPDF = async (id) => {
+  try {
+    const res = await axios.get(
+      `${backendUrl}/api/user/appointment-pdf/${id}`,
+      {
+        headers: { token },
+        responseType: "blob", // IMPORTANT
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "appointment.pdf";
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(error);
+    toast.error("PDF download failed");
+  }
+};
+
+
   useEffect(() => {
-    if (token) {
-      getUserAppointments();
-    }
+    if (token) getUserAppointments();
   }, [token]);
 
-  // small polling fallback so doctor actions reflect quickly on user panel (remove if you add sockets)
+  // polling to auto-refresh statuses
   useEffect(() => {
     if (!token) return;
-    const id = setInterval(() => {
-      getUserAppointments();
-    }, 12000); // 12s
+    const id = setInterval(() => getUserAppointments(), 12000);
     return () => clearInterval(id);
   }, [token]);
 
   return (
     <div>
-      <p className="pb-3 mt-12 font-bold text-2xl text-zinc-700 border-b border-gray-300">My Appointments</p>
+      <p className="pb-3 mt-12 font-bold text-2xl text-zinc-700 border-b border-gray-300">
+        My Appointments
+      </p>
+
       <div>
         {appointments.map((item, idx) => {
-          // unified flags
           const isCompleted = item.isCompleted === true;
           const isCancelled = item.cancelled === true;
 
           return (
-            <div className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b border-gray-300" key={idx}>
+            <div
+              className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b border-gray-300"
+              key={idx}
+            >
               <div>
-                <img className="w-32 bg-indigo-50" src={item.docData.image} alt={`${item.docData.name} profile`} />
+                <img
+                  className="w-32 bg-indigo-50"
+                  src={item.docData.image}
+                  alt={item.docData.name}
+                />
               </div>
 
               <div className="flex-1 text-sm text-zinc-600">
-                <p className="text-neutral-800 font-semibold">{item.docData.name}</p>
+                <p className="text-neutral-800 font-semibold">
+                  {item.docData.name}
+                </p>
                 <p>{item.docData.speciality}</p>
                 <p className="text-zinc-700 font-medium mt-1">Address:</p>
-                <p className="text-sm">{item.docData.address?.line1}</p>
-                <p className="text-sm">{item.docData.address?.line2}</p>
+                <p>{item.docData.address?.line1}</p>
+                <p>{item.docData.address?.line2}</p>
                 <p className="text-sm mt-1">
-                  {" "}
-                  <span className="text-sm font-medium text-neutral-700">Date & Time:</span> {item.slotDate} | {item.slotTime}{" "}
+                  <span className="font-medium text-neutral-700">
+                    Date & Time:
+                  </span>{" "}
+                  {item.slotDate} | {item.slotTime}
                 </p>
               </div>
 
-              <div></div>
               <div className="flex flex-col gap-2 justify-end">
-                {/* Show Completed */}
+
+                {/* Completed */}
                 {isCompleted && !isCancelled && (
-                  <p className="sm:min-w-48 py-2 rounded text-emerald-600 font-semibold">Completed</p>
+                  <p className="sm:min-w-48 py-2 rounded text-emerald-600 font-semibold">
+                    Completed
+                  </p>
                 )}
 
-                {/* Show Cancelled */}
+                {/* Cancelled */}
                 {isCancelled && (
-                  <p className="sm:min-w-48 py-2  rounded text-red-600 font-semibold">Appointment Cancelled</p>
+                  <p className="sm:min-w-48 py-2 rounded text-red-600 font-semibold">
+                    Appointment Cancelled
+                  </p>
                 )}
 
-                {/* Show actions only when neither completed nor cancelled */}
+                {/* Actions (only when NOT completed or cancelled) */}
                 {!isCompleted && !isCancelled && (
                   <>
                     {item.payment ? (
-                      <button className="sm:min-w-48 py-2 border rounded text-stone-500 bg-indigo-50">Paid</button>
+                      <button className="sm:min-w-48 py-2 border rounded bg-indigo-50 text-stone-500">
+                        Paid
+                      </button>
                     ) : (
-                      <button onClick={() => appointmentRazorpay(item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-emerald-400 hover:text-white transition-all duration-300 cursor-pointer">Pay Online</button>
+                      <button
+                        onClick={() => appointmentRazorpay(item._id)}
+                        className="sm:min-w-48 py-2 border rounded hover:bg-emerald-400 hover:text-white transition-all cursor-pointer"
+                      >
+                        Pay Online
+                      </button>
                     )}
 
-                    <button onClick={() => cancelAppointment(item._1d || item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-400 hover:text-white transition-all duration-300 cursor-pointer">Cancel Appointment</button>
+                    <button
+                      onClick={() => cancelAppointment(item._id)} 
+                      className="sm:min-w-48 py-2 border rounded hover:bg-red-400 hover:text-white transition-all cursor-pointer"
+                    >
+                      Cancel Appointment
+                    </button>
                   </>
                 )}
+
+                {/* PDF Download (Always Available) */}
+                  <button
+                    onClick={() => downloadPDF(item._id)}
+                    className="text-blue-600 underline text-sm sm:min-w-48 py-1 cursor-pointer"
+                  >
+                    Download PDF
+                  </button>                 
+
               </div>
             </div>
           );

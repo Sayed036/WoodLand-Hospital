@@ -6,6 +6,9 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import Razorpay from "razorpay";
+import PDFDocument from "pdfkit";
+import axios from "axios";
+import qr from "qrcode";
 
 // API , user register ke liye
 const registerUser = async (req, res) => {
@@ -312,4 +315,143 @@ const verifyRazorpay = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointments, cancelAppointment, paymentRazorpay, verifyRazorpay };
+// API to generate appointment PDF
+const appointmentPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const appointment = await appointmentModel.findById(id);
+    if (!appointment) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
+
+    // Security check
+    if (appointment.userId !== req.userId) {
+      return res.json({ success: false, message: "Not Authorized" });
+    }
+
+    // Create PDF with margin
+    const doc = new PDFDocument({ margin: 40 });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=appointment.pdf"
+    );
+
+    doc.pipe(res);
+
+
+    //  LOAD CLOUDINARY LOGO
+
+    const logoUrl =
+      "https://res.cloudinary.com/dpqy0c8rd/image/upload/f_png/v1764877505/logo_ra8cuu.png";
+
+    const logoResponse = await axios.get(logoUrl, {
+      responseType: "arraybuffer",
+    });
+    const logoBuffer = Buffer.from(logoResponse.data);
+
+    // Logo LEFT
+    doc.image(logoBuffer, 40, 40, { width: 80 });
+
+
+    //  HOSPITAL HEADER (CENTERED)
+
+    doc
+      .fontSize(22)
+      .fillColor("#1a1a1a")
+      .text("RoseWood Hospital", { align: "center" });
+
+    doc
+      .moveDown(0.3)
+      .fontSize(10)
+      .fillColor("gray")
+      .text("MG Road, Bangalore • Contact: +91 9876543210", {
+        align: "center",
+      });
+
+    doc.moveDown(2);
+
+
+    //  TITLE
+
+    doc
+      .fontSize(16)
+      .fillColor("#333")
+      .text("Appointment Receipt", { align: "center" });
+
+    doc.moveDown(0.8);
+
+    // Divider
+    doc.moveTo(40, doc.y).lineTo(550, doc.y).stroke();
+
+    doc.moveDown(1);
+
+
+    //  APPOINTMENT DETAILS
+
+    doc.fontSize(12).fillColor("#000");
+    doc.text(`Patient Name: ${appointment.userData.name}`, 40);
+    doc.text(`Doctor: ${appointment.docData.name}`, 40);
+    doc.text(`Speciality: ${appointment.docData.speciality}`, 40);
+    doc.text(`Date: ${appointment.slotDate}`, 40);
+    doc.text(`Time: ${appointment.slotTime}`, 40);
+    doc.text(`Fees: ${appointment.amount}/-`, 40);
+
+    doc.moveDown(1);
+
+    // Status Coloring
+    let status = "Pending";
+    let color = "orange";
+
+    if (appointment.cancelled) {
+      status = "Cancelled";
+      color = "red";
+    }
+
+    if (appointment.isCompleted) {
+      status = "Completed";
+      color = "green";
+    }
+
+    doc.fontSize(14).fillColor(color).text(`Status: ${status}`, 40);
+    doc.fillColor("#000");
+
+    doc.moveDown(1.5);
+
+    //  QR CODE (CENTERED)
+    const qrData = `Appointment ID: ${appointment._id}`;
+    const qrImage = await qr.toDataURL(qrData);
+
+    doc.text("Verification QR Code:", {
+      align: "center",
+      underline: true,
+    });
+
+    const pdfWidth = doc.page.width;
+    const qrWidth = 130;
+    const qrX = (pdfWidth - qrWidth) / 2; // center
+
+    doc.image(qrImage, qrX, doc.y + 10, { width: qrWidth });
+
+    doc.moveDown(8);
+
+    //  FOOTER
+    doc
+      .fontSize(10)
+      .fillColor("gray")
+      .text("Thank you for choosing RoseWood Hospital.", {
+        align: "center",
+      });
+
+    doc.end();
+  } catch (error) {
+    console.log("PDF ERROR:", error);
+    if (!res.headersSent) {
+      res.json({ success: false, message: error.message });
+    }
+  }
+};
+
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointments, cancelAppointment, paymentRazorpay, verifyRazorpay, appointmentPDF };
