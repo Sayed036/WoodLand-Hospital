@@ -169,7 +169,7 @@ const allDoctors = async (req, res) => {
 // API to get all appointments list for admin panel
 const appointmentsAdmin = async (req, res) => {
   try {
-    const appointments = await appointmentModel.find({})
+    const appointments = await appointmentModel.find({}).sort({ date: -1 });
     res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
@@ -217,7 +217,7 @@ const adminDashboard = async (req, res) => {
       doctors: doctors.length,
       patients: users.length,
       appointments: appointments.length,
-      latestAppointments: appointments.reverse().slice(0, 5),
+      latestAppointments: [...appointments].reverse().slice(0, 5),
     }
 
     res.json({success: true, dashData});

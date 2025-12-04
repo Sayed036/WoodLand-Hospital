@@ -72,6 +72,7 @@ const AdminContextProvider = (props) => {
             {
                 toast.success(data.message)
                 getAllAppointments()
+                getDashData();
             }else{
                 toast.error(data.message)
             }

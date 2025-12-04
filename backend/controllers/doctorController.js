@@ -190,4 +190,44 @@ const doctorDashboard = async (req, res) => {
   }
 }
 
-export { checkAvailability, doctorList, loginDoctor, appointmentsDoctor, appointmentComplete, appointmentCancel, doctorDashboard };
+// API to get doctorProfile for doctor panel
+const doctorProfile = async (req, res) => {
+  try {
+    const docId = req.docId;
+
+    if (!docId) {
+      return res.status(401).json({ success: false, message: "Doctor not authenticated" });
+    }
+
+    const profileData = await doctorModel.findById(docId).select("-password")
+    res.json({success: true, profileData})
+  } catch (error) {
+    console.log("Profile me problem(doc Panel) hai vaii(catch) : ",error);
+    res.json({ success: false, message: error.message });
+  }
+}
+
+// API to update doctorProfile for doctor panel
+const updateDoctorProfile = async (req, res) => {
+  try {
+    const docId = req.docId;
+    const {fees, address, available} = req.body;
+
+    if (!docId) {
+      return res.status(401).json({ success: false, message: "Doctor not authenticated" });
+    }
+
+    await doctorModel.findByIdAndUpdate(docId, {
+      fees,
+      address,
+      available
+    })
+
+    res.json({success: true, message: "Profile Updated Successfully"})
+  } catch (error) {
+    console.log("Update Profile me problem(doc Panel) hai vaii(catch) : ",error);
+    res.json({ success: false, message: error.message });
+  }
+}
+
+export { checkAvailability, doctorList, loginDoctor, appointmentsDoctor, appointmentComplete, appointmentCancel, doctorDashboard, doctorProfile, updateDoctorProfile };
