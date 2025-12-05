@@ -72,7 +72,7 @@ const MyAppointments = () => {
             toast.success(data.message);
           }
         } catch (error) {
-          toast.error("Payment verification failed");
+          toast.error("Payment verification failed", error);
         }
       },
     };

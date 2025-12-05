@@ -14,7 +14,7 @@ function Banner() {
             <p>Book Appointment</p>
             <p className='mt-4'>With Trusted Doctors</p>
         </div>
-        <button onClick={()=> {navigate('/login'); scrollTo(0,0 )} }  className='bg-white text-sm sm:text-base text-gray-600 px-8 py-3 rounded-full mt-6 hover:scale-105 transition-all'>Create/Login account</button>
+        <button onClick={()=> {navigate('/login'); scrollTo(0,0 )} }  className='bg-white text-sm sm:text-base text-gray-600 px-8 py-3 rounded-full mt-6 hover:scale-105 transition-all cursor-pointer'>Create/Login account</button>
       </div>
 
         {/* right side */}

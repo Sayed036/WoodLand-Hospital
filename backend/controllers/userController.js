@@ -9,6 +9,7 @@ import Razorpay from "razorpay";
 import PDFDocument from "pdfkit";
 import axios from "axios";
 import qr from "qrcode";
+import { sendEmail } from "../utils/emailService.js";
 
 // API , user register ke liye
 const registerUser = async (req, res) => {
@@ -202,6 +203,27 @@ const bookAppointment = async (req, res) => {
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
+
+    // Send Email Notification to User
+    sendEmail(
+      appointmentData.userData.email,
+      "Appointment Confirmed - RoseWood Hospital",
+      `
+        <h2>Appointment Confirmed ✔</h2>
+        <p>Dear ${appointmentData.userData.name},</p>
+        <p>Your appointment has been successfully booked at <b>RoseWood Hospital</b>.</p>
+
+        <h3>Appointment Details:</h3>
+        <p><b>Doctor:</b> ${appointmentData.docData.name}</p>
+        <p><b>Speciality:</b> ${appointmentData.docData.speciality}</p>
+        <p><b>Date:</b> ${appointmentData.slotDate}</p>
+        <p><b>Time:</b> ${appointmentData.slotTime}</p>
+
+        <br/>
+        <p>Thank you for choosing <b>RoseWood Hospital</b>.</p>
+        <p>Stay Healthy ❤️</p>
+      `
+    );
 
     // success
     return res.json({ success: true, message: "Appointment Booked" });

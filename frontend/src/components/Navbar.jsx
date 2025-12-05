@@ -7,7 +7,7 @@ import { AppContext } from "../context/AppContext";
 function Navbar() {
   const navigate = useNavigate();
 
-  const {token, setToken, userData} = useContext(AppContext)
+  const { token, setToken, userData } = useContext(AppContext);
 
   const [showMenu, setShowMenu] = useState(false);
   // const [token, setToken] = useState(true);
@@ -16,9 +16,10 @@ function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const logOut = () => {
-    setToken(false)
-    localStorage.removeItem('token')
-  }
+    setToken(false);
+    localStorage.removeItem("token");
+    navigate('/')
+  };
 
   return (
     <nav
@@ -60,7 +61,11 @@ function Navbar() {
             className="flex items-center gap-2 cursor-pointer group relative"
             onClick={() => setShowDropdown(!showDropdown)} // mobile toggle
           >
-            <img className="w-8 h-8 rounded-full object-cover" src={userData.image} alt="" />
+            <img
+              className="w-8 h-8 rounded-full object-cover"
+              src={userData.image}
+              alt=""
+            />
             <img className="w-2.5" src={assets.dropdown_icon} alt="" />
 
             {/*------------ DROPDOWN ---------------*/}
@@ -93,7 +98,8 @@ function Navbar() {
                 </p>
 
                 <p
-                  onClick={() => { logOut();
+                  onClick={() => {
+                    logOut();
                     setShowDropdown(false);
                     // setToken(false);
                   }}
@@ -107,9 +113,10 @@ function Navbar() {
         ) : (
           <button
             onClick={() => {
+              // console.log("object");
               navigate("/login");
             }}
-            className="bg-[#b03053] text-white px-8 py-3 rounded-full hidden md:block"
+            className="bg-[#b03053] text-white px-8 py-3 rounded-full hidden md:block cursor-pointer"
           >
             Create/Login account
           </button>

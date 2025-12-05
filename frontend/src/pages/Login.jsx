@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 function Login() {
   const { backendUrl, token, setToken } = useContext(AppContext);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [state, setState] = useState("Sign Up");
 
@@ -47,14 +47,13 @@ function Login() {
     }
   };
 
-
   // jaise hi login complete ho waise hi home page pe jana chaahiye n bhaii
-  useEffect( ()=> {
-    if(token)
-    {
-      navigate('/')
+  useEffect(() => {
+    // console.log(token);
+    if (token) {
+      navigate("/");
     }
-  }, [token] )
+  }, [token]);
 
   return (
     <form
