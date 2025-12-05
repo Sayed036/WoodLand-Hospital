@@ -215,12 +215,39 @@ const MyAppointments = () => {
                 )}
 
                 {/* PDF Download (Always Available) */}
-                  <button
-                    onClick={() => downloadPDF(item._id)}
-                    className="text-blue-600 underline text-sm sm:min-w-48 py-1 cursor-pointer"
-                  >
-                    Download PDF
-                  </button>                 
+                <button
+                  onClick={() => downloadPDF(item._id)}
+                  className="group relative inline-flex items-center justify-center gap-2 px-6 py-3 
+                            bg-linear-to-r from-blue-600 to-indigo-600 
+                            text-white font-medium text-sm rounded-xl
+                            shadow-lg hover:shadow-xl
+                            transform hover:-translate-y-0.5 
+                            transition-all duration-300 ease-out
+                            overflow-hidden cursor-pointer"
+                >
+                  {/* Shining effect */}
+                  <span className="absolute inset-0 w-full h-full bg-white opacity-0 
+                                  group-hover:opacity-20 transition-opacity duration-500 
+                                  -translate-x-full group-hover:translate-x-full 
+                                  skew-x-12" />
+
+                  {/* PDF Icon */}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+
+                  <span>Download PDF</span>
+
+                  {/* Download arrow animation on hover */}
+                  <svg className="w-5 h-5 ml-2 opacity-0 group-hover:opacity-100 
+                                  -translate-x-2.5 group-hover:translate-x-0 
+                                  transition-all duration-300" 
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </button>                 
 
               </div>
             </div>
