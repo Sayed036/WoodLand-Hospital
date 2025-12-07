@@ -33,7 +33,7 @@
 
 import client from "../configs/brevo.js";
 
-export const sendEmail = async ({ to, subject, html }) => {
+export const sendEmail = async (to, subject, html) => {
   try {
     const sendSmtpEmail = {
       sender: { name: "Rosewood Hospital", email: "soulf032@gmail.com" },
