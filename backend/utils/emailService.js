@@ -31,7 +31,7 @@
 
 // brevo integration
 
-import client from "../config/brevo.js";
+import client from "../configs/brevo.js";
 
 export const sendEmail = async ({ to, subject, html }) => {
   try {
